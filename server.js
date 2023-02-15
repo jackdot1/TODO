@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const date = require(__dirname + "/date.js");
 var _ = require("lodash");
 var HTTP_PORT = process.env.PORT || 3000;
+const listNameArr = [];
+
 
 const app = express();
 
@@ -88,7 +90,6 @@ const List = mongoose.model("List", listSchema);
 
 ////////////////////////////////
 
-const listNameArr = [];
 
 if(listNameArr.length === 0)
 {
