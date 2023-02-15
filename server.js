@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const date = require(__dirname + "/date.js");
 var _ = require("lodash");
-var HTTP_PORT = process.env.PORT || 8080;
+var HTTP_PORT = process.env.PORT || 3000;
 
 const app = express();
 
@@ -40,6 +40,10 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
+
+
+//////////////////////////////////////////////////////////
+
 app.get("/", function (req, res) {
   const day = _.capitalize(date.getDay());
 
@@ -57,14 +61,90 @@ app.get("/", function (req, res) {
         });
         res.redirect("/");
       } else {
-        res.render("list", { listTitle: day, newListItems: foundItem });
+        res.render("list", { listTitle: day, newListItems: foundItem ,topiczz : listNameArr});
+      }
+    }
+  });
+});
+
+/////////////////////////////////////////////////////////////
+
+const listSchema = new mongoose.Schema({
+  name: String,
+  items: [todoSchema],
+});
+
+const List = mongoose.model("List", listSchema);
+
+
+//  List.find({}, function (err, result) {
+//    if (err) {
+//      console.log(err);
+//    } else {
+//     console.log(result);
+//     //  listNameArr.push(result.name);
+//    }
+//  });
+
+////////////////////////////////
+
+const listNameArr = [];
+
+if(listNameArr.length === 0)
+{
+  listNameArr.push("home");
+}
+
+   List.find({}, (err, result) => {
+     if (err)
+       {
+        console.log(err);
+       }else{
+        // console.log(result);
+       result.map((user) => {
+        //  console.log(user.name);
+         listNameArr.push(user.name);
+       });
+      }
+   });
+ 
+/////////////////////////////////
+
+
+
+
+app.get("/:topic", (req, res) => {
+  // console.log(req.params.topic);
+  const customListName = _.capitalize(req.params.topic);
+  List.findOne({ name: customListName }, (err, foundItem) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (!foundItem) {
+        // console.log("not exists");
+        const arr = [{ name: customListName, items: defaultItems }];
+        List.insertMany(arr, (err, docs) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("sucessfully inserted the default items");
+          }
+        });
+        res.redirect("/" + customListName);
+      } else {
+        // console.log("exists!!!");
+        res.render("list", {
+          listTitle: foundItem.name,
+          newListItems: foundItem.items,
+          topiczz:listNameArr
+        });
       }
     }
   });
 });
 
 
-
+////////////////////////////////////////////////////////////////////
 
 app.post("/add", function (req, res) {
 
@@ -102,12 +182,7 @@ app.post("/delete", function (req, res) {
   const day = _.capitalize(date.getDay());
   const listName = req.body.delList;
   const userCheckedBox = req.body.checkBox;
-
-
 if (listName === day) {
-
-
-
   Item.findByIdAndRemove(userCheckedBox, (err) => {
     if (err) {
       console.log(err);
@@ -116,11 +191,8 @@ if (listName === day) {
     }
     res.redirect("/");
   });
-
 }
  else {
-
-
     // console.log(req.body.checkBox);
     List.findOneAndUpdate({name :listName} ,{$pull : {items : {_id : userCheckedBox}}},(err,foundList) =>{
       if (err) {
@@ -129,49 +201,9 @@ if (listName === day) {
     res.redirect("/" + listName);
       }
     });
-
-
 }
 });
 
-
-
-
-
-
-
-const listSchema = new mongoose.Schema({
-  name: String,
-  items: [todoSchema],
-});
-
-const List = mongoose.model("List", listSchema);
-
-app.get("/:topic", (req, res) => {
-  // console.log(req.params.topic);
-  const customListName = _.capitalize(req.params.topic);
-  List.findOne({ name: customListName }, (err, foundItem) => {
-    if (err) {
-      console.log(err);
-    } else {
-      if(!foundItem) {
-        // console.log("not exists");
-        const arr = [{ name: customListName , items:defaultItems }];
-        List.insertMany(arr, (err,docs) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("sucessfully inserted the default items");
-          }
-        });
-        res.redirect("/"+customListName);
-      }else{
-        // console.log("exists!!!");
-        res.render("list", { listTitle: foundItem.name , newListItems: foundItem.items });
-      }
-    }
-  });
-});
 
 app.get("/about", function (req, res) {
   res.render("about");

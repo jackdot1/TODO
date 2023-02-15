@@ -1,9 +1,23 @@
 
 
+
+
+<ul>
+<% topiczz.forEach( function (result) { %>
+  <% if(result === "home"){ %>
+    <li><a href="/" ><%= result%></a></li>
+   <% }else{   %>
+    <li><a href="/<%= result%>" ><%= result%></a></li>
+   <% }  %>
+<% }) %>
+</ul>
+
+
+
 </body>
 
 <footer>
-  Copyright 2018 The App Brewery
+  Copyright 2018 JackDot
 </footer>
 
 </html>
